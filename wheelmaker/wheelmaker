@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import os
+import subprocess
+import xmlrpclib
+
+import click
+import requirements
+
+PYPI_URL = 'https://pypi.python.org/pypi/'
+MAX_VERSIONS = 3
+DOWNLOAD_FOLDER = '/tmp/wheelmaker'
+
+
+def create_wheels(urllist):
+    for url in urllist:
+        subprocess.call(['pip', 'wheel', url])
+
+
+def parse_requirements_file(filename):
+    """Parses a standard requirements.txt file"""
+    requirements_base_names = []
+    if os.path.exists(filename):
+        with open(filename, 'r') as req_file:
+            reqs = list(requirements.parse(req_file))
+            for r in reqs:
+                requirements_base_names.append(r.name)
+        return requirements_base_names
+    else:
+        return False
+
+
+def check_existence(package_name, max_versions):
+    """Verifies the existence of the package in PyPi"""
+    client = xmlrpclib.ServerProxy(PYPI_URL)
+    releases_versions = client.package_releases(package_name)
+
+    urls = []
+
+    for rl in releases_versions[:max_versions]:
+        string = package_name + '==' + rl
+        urls.append(string)
+    return urls
+
+
+@click.command()
+@click.option('--maxversions', default=MAX_VERSIONS,
+              help='Max number of versions to download and convert')
+@click.option('--package',
+              help='Package to download')
+@click.option('--requirements',
+              help='Full path to requirements.txt')
+def main(maxversions, package, requirements):
+    """Downloads versions of a package from PyPi, and converts them to wheel
+        format."""
+    if package:
+        data = check_existence(package, maxversions)
+        create_wheels(data)
+
+    if requirements:
+        reqs = parse_requirements_file(requirements)
+        for r in reqs:
+            urllist = (check_existence(r, maxversions))
+            create_wheels(urllist)
+
+if __name__ == '__main__':
+    main()

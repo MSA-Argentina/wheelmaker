@@ -1,0 +1,4 @@
+click==2.0
+requests==2.3.0
+requirements-parser==0.0.6
+wheel==0.23.0
