@@ -31,7 +31,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author='Franco Mariluis',
     author_email='fmariluis@msa.com.ar',
-    url='https://github.com/fmariluis/wheelmaker',
+    url='https://github.com/MSA-Argentina/wheelmaker',
     packages=[
         'wheelmaker',
     ],
